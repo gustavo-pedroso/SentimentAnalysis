@@ -5,15 +5,16 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import MultinomialNB
-from preprocessor import Preprocessor
+from src.preprocessor import Preprocessor
 from random import sample
-from classifier import Classifier
+from src.classifier import Classifier
+import src.conf as conf
 import numpy
 
 preprocess = False
 if preprocess:
 
-    dataset_pickle = open(r'data\dataset_cleared.pickle', 'rb')
+    dataset_pickle = open(conf.project_path + 'data\dataset_cleared.pickle', 'rb')
 
     dataset = pickle.load(dataset_pickle)
     dataset_pickle.close()
@@ -31,10 +32,10 @@ if preprocess:
     dataset = positives + negatives
 
     dataset = list(map(lambda x: (preprocessor.preprocess(x[0]), x[1]), dataset))  # preprocess dataset
-    preprocessed_dataset = open(r'data\dataset_preprocessed.pickle', 'wb')
+    preprocessed_dataset = open(conf.project_path + 'data\dataset_preprocessed.pickle', 'wb')
     pickle.dump(dataset, preprocessed_dataset)
 
-dataset = pickle.load(open(r'data\dataset_preprocessed.pickle', 'rb'))
+dataset = pickle.load(open(conf.project_path + 'data\dataset_preprocessed.pickle', 'rb'))
 
 classifiers = [(SVC(kernel='rbf', C=1, gamma=1), 'svm_rbf'),
                (SVC(kernel='linear'), 'svm_linear'),
@@ -74,7 +75,7 @@ for clf in classifiers:
         mr_avg = []
         acc_avg = []
 
-        file_path = 'results/' + vec[1] + '-' + clf[1] + '.txt'
+        file_path = conf.project_path + 'results/' + vec[1] + '-' + clf[1] + '.txt'
         file = open(file_path, 'w')
 
         for i in range(0, runs):

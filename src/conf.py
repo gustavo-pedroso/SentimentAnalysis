@@ -1,0 +1,1 @@
+project_path = 'C:/Users/Gustavo/Documents/GitHub/SentimentAnalysis/'

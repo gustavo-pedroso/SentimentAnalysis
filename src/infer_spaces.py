@@ -1,7 +1,8 @@
 from math import log
+import src.conf as conf
 
 # Build a cost dictionary, assuming Zipf's law and cost = -math.log(probability).
-words = open("data/words-by-frequency.txt").read().split()
+words = open(conf.project_path + 'data/words-by-frequency.txt', 'r').read().split()
 wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
 maxword = max(len(x) for x in words)
 
