@@ -37,6 +37,7 @@ if preprocess:
 
 dataset = pickle.load(open(conf.project_path + 'data\dataset_preprocessed.pickle', 'rb'))
 
+
 classifiers = [(SVC(kernel='rbf', C=1, gamma=1), 'svm_rbf'),
                (SVC(kernel='linear'), 'svm_linear'),
                (KNeighborsClassifier(), 'knn'),
@@ -46,7 +47,7 @@ vectorizers = [(TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf
                (CountVectorizer(max_df=0.95, min_df=2), 'count'),
                (HashingVectorizer(), 'hash')]
 
-'''
+
 cl = Classifier(SVC(), (TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf=True)))
 
 x = list(map(lambda a: a[0], dataset))
@@ -55,7 +56,7 @@ y = list(map(lambda a: a[1], dataset))
 c_avg = []
 gamma_avg = []
 
-for i in range(0, 10):
+for i in range(0, 5):
     r = cl.svc_param_selection(x, y, 10, "grid")
     print(r)
     c_avg.append(r['C'])
@@ -63,10 +64,10 @@ for i in range(0, 10):
 
 print(numpy.average(c_avg))
 print(numpy.average(gamma_avg))
+
+
 '''
-
-
-runs = 2
+runs = 100
 for clf in classifiers:
     for vec in vectorizers:
         if clf[1] == 'naive_bayes' and vec[1] == 'hash':
@@ -87,3 +88,4 @@ for clf in classifiers:
             file.write(str(r[0]) + ',' + str(r[1]) + '\n')
         file.close()
         print(numpy.mean(mr_avg), numpy.mean(acc_avg))
+'''

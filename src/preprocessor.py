@@ -5,8 +5,9 @@ from nltk.stem.snowball import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords as sw
 from nltk.tokenize import TweetTokenizer
-import infer_spaces
+import src.infer_spaces as infer_spaces
 import enchant
+import src.conf as conf
 
 
 class Preprocessor:
@@ -15,15 +16,29 @@ class Preprocessor:
     stemmer = SnowballStemmer('english')
     lemmatizer = WordNetLemmatizer()
     punct = set(string.punctuation)
+    digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
     special_char = ['$', '%', '&', '*', '(', ')', '_', '-', '+', '=', '{', '[', '}', ']', '~', '.', ',', ';']
     tokenizer = TweetTokenizer(reduce_len=True, preserve_case=False)
+
+    english_names = set(map(lambda x: x.replace('\n', '').strip().lower(),
+                        open(conf.project_path + 'data/' + 'english_names.txt', 'r').readlines()))
 
     def preprocess(self, doc):
         temp = doc.lower()
         temp = html.unescape(temp)
         sentence = []
 
+        temp_sentence = []
         for word in self.tokenizer.tokenize(temp):
+            if '#' in word:
+                word = infer_spaces.infer_spaces(word.replace('#', ''))
+            temp_sentence.append(word)
+        temp = ' '.join(temp_sentence)
+        temp = ' '.join(temp.split())
+
+        for word in self.tokenizer.tokenize(temp):
+
+            word = word.strip()
 
             word = re.sub('((http|https)://)?[a-zA-Z0-9./?:@\-_=#]+\.([a-zA-Z0-9&./?:@\-_=#])*', '', word)  # remove url
 
@@ -34,11 +49,16 @@ class Preprocessor:
             for s in self.special_char:
                 word = word.replace(s, '')
 
-            if '@' in word:
+            for d in self.digits:
+                if d in word:
+                    word = ''
+                    break
+
+            if word in self.english_names and not self.dic.check(word):
                 word = ''
 
-            if '#' in word:
-                word = infer_spaces.infer_spaces(word.replace('#', ''))
+            if '@' in word:
+                word = ''
 
             if word.strip() in self.stopwords:
                 word = ''
@@ -64,6 +84,5 @@ class Preprocessor:
         temp = ' '.join(sentence)
         temp = ' '.join(temp.split())
 
+        print(temp)
         return temp
-
-

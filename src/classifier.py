@@ -62,12 +62,12 @@ class Classifier:
             cs = [0.9, 1, 1.1]
             gammas = [0.9, 1, 1.1]
             param_grid = {'C': cs, 'gamma': gammas}
-            grid_search = GridSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="f1_macro")
+            grid_search = GridSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="recall_macro")
         elif searchType == "random":
             cs = scipy.stats.expon(scale=100)
             gammas = scipy.stats.expon(scale=0.1)
             param_grid = {'C': cs, 'gamma': gammas}
-            grid_search = RandomizedSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="f1_macro")
+            grid_search = RandomizedSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="recall_macro")
 
         grid_search.fit(train_vectors, train_labels)
         grid_search.best_params_

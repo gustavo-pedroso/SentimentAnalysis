@@ -1,14 +1,17 @@
 from scipy import stats
 import os
 import numpy as np
+import src.conf as conf
 
 samples_avg = set()
 
-for file1 in os.listdir('results'):
-    for file2 in os.listdir('results'):
+results_path = conf.project_path + '/results/'
+
+for file1 in os.listdir(results_path):
+    for file2 in os.listdir(results_path):
         if file1 != file2:
-            f1 = open('results/' + file1)
-            f2 = open('results/' + file2)
+            f1 = open(results_path + file1)
+            f2 = open(results_path + file2)
 
             sample1 = list(map(lambda x: float(x.replace('\n', '').split(',')[0]), f1.readlines()))
             sample2 = list(map(lambda x: float(x.replace('\n', '').split(',')[0]), f2.readlines()))
