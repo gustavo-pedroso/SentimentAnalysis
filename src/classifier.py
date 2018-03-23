@@ -60,7 +60,7 @@ class Classifier:
 
         if searchType == "grid":
             cs = [0.9, 1, 1.1]
-            gammas = [0.9, 1, 1.1]
+            gammas = [0.0, 1, 1.1]
             param_grid = {'C': cs, 'gamma': gammas}
             grid_search = GridSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="recall_macro")
         elif searchType == "random":

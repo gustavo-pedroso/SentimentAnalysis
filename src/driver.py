@@ -15,30 +15,31 @@ preprocess = False
 if preprocess:
 
     dataset_pickle = open(conf.project_path + 'data\dataset_cleared.pickle', 'rb')
-
     dataset = pickle.load(dataset_pickle)
     dataset_pickle.close()
 
     preprocessor = Preprocessor()
 
-    positives = list(filter(lambda x: x[1] == 'positive', dataset))  # filter positives
-    negatives = list(filter(lambda x: x[1] == 'negative', dataset))  # filter negatives
-
-    min_examples = min(len(positives), len(negatives))
-
-    positives = positives[0:min_examples]
-    negatives = negatives[0:min_examples]
-
-    dataset = positives + negatives
-
     dataset = list(map(lambda x: (preprocessor.preprocess(x[0]), x[1]), dataset))  # preprocess dataset
     preprocessed_dataset = open(conf.project_path + 'data\dataset_preprocessed.pickle', 'wb')
     pickle.dump(dataset, preprocessed_dataset)
 
+
 dataset = pickle.load(open(conf.project_path + 'data\dataset_preprocessed.pickle', 'rb'))
+positives = list(filter(lambda x: x[1] == 'positive', dataset))  # filter positives
+negatives = list(filter(lambda x: x[1] == 'negative', dataset))  # filter negatives
 
 
-classifiers = [(SVC(kernel='rbf', C=1, gamma=1), 'svm_rbf'),
+positives.sort(key=lambda x: len(x[0].split()))
+negatives.sort(key=lambda x: len(x[0].split()))
+
+min_examples = min(len(positives), len(negatives))
+
+positives = positives[0:min_examples]
+negatives = negatives[0:min_examples]
+dataset = positives + negatives
+
+classifiers = [(SVC(kernel='rbf', C=1.1, gamma=1), 'svm_rbf'),
                (SVC(kernel='linear'), 'svm_linear'),
                (KNeighborsClassifier(), 'knn'),
                (MultinomialNB(), 'naive_bayes')]
@@ -47,6 +48,7 @@ vectorizers = [(TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf
                (CountVectorizer(max_df=0.95, min_df=2), 'count'),
                (HashingVectorizer(), 'hash')]
 
+'''
 
 cl = Classifier(SVC(), (TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf=True)))
 
@@ -65,8 +67,9 @@ for i in range(0, 5):
 print(numpy.average(c_avg))
 print(numpy.average(gamma_avg))
 
-
 '''
+
+
 runs = 100
 for clf in classifiers:
     for vec in vectorizers:
@@ -88,4 +91,3 @@ for clf in classifiers:
             file.write(str(r[0]) + ',' + str(r[1]) + '\n')
         file.close()
         print(numpy.mean(mr_avg), numpy.mean(acc_avg))
-'''
