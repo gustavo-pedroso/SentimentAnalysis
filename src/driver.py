@@ -24,14 +24,14 @@ if preprocess:
     preprocessed_dataset = open(conf.project_path + 'data\dataset_preprocessed.pickle', 'wb')
     pickle.dump(dataset, preprocessed_dataset)
 
-
 dataset = pickle.load(open(conf.project_path + 'data\dataset_preprocessed.pickle', 'rb'))
+
+dataset = list(filter(lambda x: len(x[0].split()) > 0, dataset))  # filter positives
 positives = list(filter(lambda x: x[1] == 'positive', dataset))  # filter positives
 negatives = list(filter(lambda x: x[1] == 'negative', dataset))  # filter negatives
 
-
-positives.sort(key=lambda x: len(x[0].split()))
-negatives.sort(key=lambda x: len(x[0].split()))
+positives.sort(key=lambda x: -len(x[0].split()))
+negatives.sort(key=lambda x: -len(x[0].split()))
 
 min_examples = min(len(positives), len(negatives))
 
@@ -44,13 +44,13 @@ classifiers = [(SVC(kernel='rbf', C=1.1, gamma=1), 'svm_rbf'),
                (KNeighborsClassifier(), 'knn'),
                (MultinomialNB(), 'naive_bayes')]
 
-vectorizers = [(TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf=True), 'tfidf'),
-               (CountVectorizer(max_df=0.95, min_df=2), 'count'),
+vectorizers = [(TfidfVectorizer(min_df=0.0, max_df=1.0, sublinear_tf=True, use_idf=True), 'tfidf'),
+               (CountVectorizer(min_df=0.0, max_df=1.0), 'count'),
                (HashingVectorizer(), 'hash')]
 
 '''
 
-cl = Classifier(SVC(), (TfidfVectorizer(min_df=5, max_df=0.8, sublinear_tf=True, use_idf=True)))
+cl = Classifier(SVC(), vectorizers[0][0])
 
 x = list(map(lambda a: a[0], dataset))
 y = list(map(lambda a: a[1], dataset))
@@ -69,8 +69,7 @@ print(numpy.average(gamma_avg))
 
 '''
 
-
-runs = 100
+runs = 10
 for clf in classifiers:
     for vec in vectorizers:
         if clf[1] == 'naive_bayes' and vec[1] == 'hash':

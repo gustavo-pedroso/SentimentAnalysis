@@ -8,6 +8,7 @@ from nltk.tokenize import TweetTokenizer
 import src.infer_spaces as infer_spaces
 import enchant
 import src.conf as conf
+import pickle
 
 
 class Preprocessor:
@@ -23,6 +24,8 @@ class Preprocessor:
     english_names = set(map(lambda x: x.replace('\n', '').strip().lower(),
                         open(conf.project_path + 'data/' + 'english_names.txt', 'r').readlines()))
 
+    acronyms = pickle.load(open(conf.project_path + 'data/' + 'acronyms.pickle', 'rb'))
+
     def preprocess(self, doc):
         temp = doc.lower()
         temp = html.unescape(temp)
@@ -36,15 +39,23 @@ class Preprocessor:
         temp = ' '.join(temp_sentence)
         temp = ' '.join(temp.split())
 
+        temp_sentence = []
+        for word in self.tokenizer.tokenize(temp):
+            if word in self.acronyms:
+                word = self.acronyms[word]
+            temp_sentence.append(word)
+        temp = ' '.join(temp_sentence)
+        temp = ' '.join(temp.split())
+
         for word in self.tokenizer.tokenize(temp):
 
             word = word.strip()
 
             word = re.sub('((http|https)://)?[a-zA-Z0-9./?:@\-_=#]+\.([a-zA-Z0-9&./?:@\-_=#])*', '', word)  # remove url
 
-            word = re.sub('[:;][\-^]?[)\]Dp]|[cCq(\[][\-^]?[:;]', ' good ', word)  # replace good emoticons
-
-            word = re.sub('[:;][\-^]?[(\[<{]|[>)\]\}][\-^]?[:;]', ' bad ', word)  # replace bad emoticons
+            if len(word) <= 3:
+                word = re.sub('[:;=8][\-=^*\']?[)\]Dpb}]|[cCqd{(\[][\-=^*\']?[:;=8]', ' good ', word)  # replace good emoticons
+                word = re.sub('[:;=8][\-=^*\']?[(\[<{cC]|[D>)\]}][\-=^*\']?[:;=8]', ' bad ', word)  # replace bad emoticons
 
             for s in self.special_char:
                 word = word.replace(s, '')
@@ -74,6 +85,8 @@ class Preprocessor:
                     sug = self.dic.suggest(word)
                     if len(sug) > 0:
                         word = sug[0]
+                    else:
+                        word = ''
 
             word = word.lower()
 
