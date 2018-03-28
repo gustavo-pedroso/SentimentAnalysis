@@ -11,7 +11,7 @@ from src.classifier import Classifier
 import src.conf as conf
 import numpy
 
-preprocess = False
+preprocess = True
 if preprocess:
 
     dataset_pickle = open(conf.project_path + 'data\dataset_cleared.pickle', 'rb')

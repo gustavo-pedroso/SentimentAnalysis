@@ -16,7 +16,7 @@ class Preprocessor:
     stopwords = set(sw.words('english'))
     stemmer = SnowballStemmer('english')
     lemmatizer = WordNetLemmatizer()
-    punct = set(string.punctuation)
+    punct = list(string.punctuation)
     digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
     special_char = ['$', '%', '&', '*', '(', ')', '_', '-', '+', '=', '{', '[', '}', ']', '~', '.', ',', ';']
     tokenizer = TweetTokenizer(reduce_len=True, preserve_case=False)
@@ -29,8 +29,8 @@ class Preprocessor:
     def preprocess(self, doc):
         temp = doc.lower()
         temp = html.unescape(temp)
-        sentence = []
 
+        #  -------------------------------------------------------------------- infer spaces
         temp_sentence = []
         for word in self.tokenizer.tokenize(temp):
             if '#' in word:
@@ -39,6 +39,7 @@ class Preprocessor:
         temp = ' '.join(temp_sentence)
         temp = ' '.join(temp.split())
 
+        #  -------------------------------------------------------------------- acronyms
         temp_sentence = []
         for word in self.tokenizer.tokenize(temp):
             if word in self.acronyms:
@@ -47,23 +48,27 @@ class Preprocessor:
         temp = ' '.join(temp_sentence)
         temp = ' '.join(temp.split())
 
+        sentence = []
         for word in self.tokenizer.tokenize(temp):
 
             word = word.strip()
 
+            word = word.lower()
+
             word = re.sub('((http|https)://)?[a-zA-Z0-9./?:@\-_=#]+\.([a-zA-Z0-9&./?:@\-_=#])*', '', word)  # remove url
 
             if len(word) <= 3:
-                word = re.sub('[:;=8][\-=^*\']?[)\]Dpb}]|[cCqd{(\[][\-=^*\']?[:;=8]', ' good ', word)  # replace good emoticons
-                word = re.sub('[:;=8][\-=^*\']?[(\[<{cC]|[D>)\]}][\-=^*\']?[:;=8]', ' bad ', word)  # replace bad emoticons
+                word = re.sub('[:;=8][\-=^*\']?[)\]Dpb}]|[cCqd{(\[][\-=^*\']?[:;=8]', 'good', word)  # replace good emoticons
+                word = re.sub('[:;=8][\-=^*\']?[(\[<{cC]|[D>)\]}][\-=^*\']?[:;=8]', 'bad', word)  # replace bad emoticons
 
             for s in self.special_char:
                 word = word.replace(s, '')
 
-            for d in self.digits:
-                if d in word:
-                    word = ''
-                    break
+            for s in self.punct:
+                word = word.replace(s, '')
+
+            for s in self.digits:
+                word = word.replace(s, '')
 
             if word in self.english_names and not self.dic.check(word):
                 word = ''
@@ -71,13 +76,7 @@ class Preprocessor:
             if '@' in word:
                 word = ''
 
-            if word.strip() in self.stopwords:
-                word = ''
-
-            if word.strip() in self.punct:
-                word = ''
-
-            if len(word.strip()) < 2:
+            if word in self.stopwords:
                 word = ''
 
             if word != '' and ' ' not in word:
@@ -87,9 +86,12 @@ class Preprocessor:
                         word = sug[0]
                     else:
                         word = ''
+                word = word.lower()
 
-            word = word.lower()
+            if len(word) < 2:
+                word = ''
 
+            word = self.lemmatizer.lemmatize(word)
             word = self.stemmer.stem(word)
 
             sentence.append(word)
