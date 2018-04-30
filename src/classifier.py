@@ -6,6 +6,7 @@ from sklearn.model_selection import KFold
 import numpy
 from sklearn.metrics import confusion_matrix
 import scipy
+from sklearn.metrics import precision_recall_fscore_support
 
 
 class Classifier:
@@ -24,7 +25,6 @@ class Classifier:
         mr_avg = []
         acc_avg = []
         for train, test in kf.split(data):
-
             train_data = numpy.array(data)[train]
             x_train = list(map(lambda x: x[0], train_data))
             y_train = list(map(lambda x: x[1], train_data))
@@ -40,10 +40,10 @@ class Classifier:
 
             y_pred = self.classifier.predict(x_test)
 
-            nn, np, pn, pp = confusion_matrix(y_test, y_pred).ravel()
+            tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 
-            macroaveraged_recall = 1/2*((pp / (pp + np)) + (nn / (nn + pn)))
-            accuracy = (pp + nn) / (pp + nn + np + pn)
+            macroaveraged_recall = 1/2*((tp / (tp + fn)) + (tn / (tn + fp)))
+            accuracy = (tp + tn) / (tp + tn + fn + fp)
 
             if macroaveraged_recall is not None:
                 mr_avg.append(macroaveraged_recall)
@@ -53,7 +53,7 @@ class Classifier:
 
     def predict(self, example):
         example = self.vectorizer.transform([example])
-        return self.classifier.predict(example)
+        return self.classifier.predict(example)[0]
 
     def svc_param_selection(self, train_data, train_labels, nfolds, searchType):
         train_vectors = self.vectorizer.fit_transform(train_data)

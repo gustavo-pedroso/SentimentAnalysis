@@ -5,13 +5,15 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import Perceptron
 from src.preprocessor import Preprocessor
 from random import sample
 from src.classifier import Classifier
 import src.conf as conf
 import numpy
+from pymongo import MongoClient
 
-preprocess = True
+preprocess = False
 if preprocess:
 
     dataset_pickle = open(conf.project_path + 'data\dataset_cleared.pickle', 'rb')
@@ -26,29 +28,40 @@ if preprocess:
 
 dataset = pickle.load(open(conf.project_path + 'data\dataset_preprocessed.pickle', 'rb'))
 
-dataset = list(filter(lambda x: len(x[0].split()) > 0, dataset))  # filter positives
-positives = list(filter(lambda x: x[1] == 'positive', dataset))  # filter positives
-negatives = list(filter(lambda x: x[1] == 'negative', dataset))  # filter negatives
+dataset = [x for x in dataset if len(x[0].split()) > 0]
 
-positives.sort(key=lambda x: -len(x[0].split()))
-negatives.sort(key=lambda x: -len(x[0].split()))
+dataset = list(set(dataset))
 
-min_examples = min(len(positives), len(negatives))
-
-positives = positives[0:min_examples]
-negatives = negatives[0:min_examples]
-dataset = positives + negatives
+print(len(dataset))
 
 classifiers = [(SVC(kernel='rbf', C=1.1, gamma=1), 'svm_rbf'),
                (SVC(kernel='linear'), 'svm_linear'),
                (KNeighborsClassifier(), 'knn'),
-               (MultinomialNB(), 'naive_bayes')]
+               (MultinomialNB(), 'naive_bayes'),
+               (Perceptron(), 'perceptron')]
 
 vectorizers = [(TfidfVectorizer(min_df=0.0, max_df=1.0, sublinear_tf=True, use_idf=True), 'tfidf'),
                (CountVectorizer(min_df=0.0, max_df=1.0), 'count'),
                (HashingVectorizer(), 'hash')]
 
-'''
+
+# c = Classifier(classifier=classifiers[0][0], vectorizer=vectorizers[0][0])
+# x = list(map(lambda a: a[0], dataset))
+# y = list(map(lambda a: a[1], dataset))
+#
+# c.train(x_train=x, y_train=y)
+#
+# client = MongoClient('localhost', 27017)
+# db = client['tcc']
+# collection = db['tweets']
+#
+# for doc in collection.find({"classified": True}):
+#     print(doc['text'].replace('\n', ' '))
+#     print(c.predict(doc['text']))
+
+
+#
+#
 
 cl = Classifier(SVC(), vectorizers[0][0])
 
@@ -67,26 +80,30 @@ for i in range(0, 5):
 print(numpy.average(c_avg))
 print(numpy.average(gamma_avg))
 
-'''
-
-runs = 10
-for clf in classifiers:
-    for vec in vectorizers:
-        if clf[1] == 'naive_bayes' and vec[1] == 'hash':
-            continue
-        print(vec[1] + ' and ' + clf[1])
-        mr_avg = []
-        acc_avg = []
-
-        file_path = conf.project_path + 'results/' + vec[1] + '-' + clf[1] + '.txt'
-        file = open(file_path, 'w')
-
-        for i in range(0, runs):
-            dataset = sample(dataset, len(dataset))
-            c = Classifier(clf[0], vec[0])
-            r = c.evaluate_score(dataset, 10)
-            mr_avg.append(r[0])
-            acc_avg.append(r[1])
-            file.write(str(r[0]) + ',' + str(r[1]) + '\n')
-        file.close()
-        print(numpy.mean(mr_avg), numpy.mean(acc_avg))
+#
+#
+#
+#
+#
+# runs = 100
+# for clf in classifiers:
+#     for vec in vectorizers:
+#         if clf[1] == 'naive_bayes' and vec[1] == 'hash':
+#             continue
+#         print(vec[1] + ' and ' + clf[1])
+#         mr_avg = []
+#         acc_avg = []
+#
+#         file_path = conf.project_path + 'results/' + vec[1] + '-' + clf[1] + '.txt'
+#         file = open(file_path, 'w')
+#
+#         for i in range(0, runs):
+#             dataset = sample(dataset, len(dataset))
+#             c = Classifier(clf[0], vec[0])
+#             r = c.evaluate_score(dataset, 10)
+#             mr_avg.append(r[0])
+#             acc_avg.append(r[1])
+#             print(str(r[0]) + ',' + str(r[1]))
+#             file.write(str(r[0]) + ',' + str(r[1]) + '\n')
+#         file.close()
+#         print(numpy.mean(mr_avg), numpy.mean(acc_avg))

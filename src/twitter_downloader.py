@@ -1,10 +1,9 @@
 import pickle
-from test import TitleParser
+import src.conf as conf
 from urllib.request import urlopen
-import urllib
+import re
 
-
-lines = open(r'C:\Users\gusta\Desktop\data.txt', 'r').readlines()
+lines = open(conf.project_path + '/data/data1.txt', 'r').readlines()
 
 ids_labels = []
 
@@ -13,18 +12,18 @@ print(len(lines))
 for line in lines:
     line = line.split('\t')
     tweet_id = line[0]
-    label = line[1].replace('\n', '')
+    label = line[2].replace('\n', '')
 
     if label != 'neutral':
         ids_labels.append((tweet_id, label))
 
-dataset_file = open(r'C:\Users\gusta\Desktop\dataset.pickle', 'wb')
+dataset_file = open(conf.project_path + '/data/dataset1.pickle', 'wb')
 dataset = []
 
 curr = 0
 total = len(ids_labels)
 
-tp = TitleParser()
+
 for inst in ids_labels:
     print(str(curr) + ' from ' + str(total) + ' -> dataset length = ' + str(len(dataset)))
     curr += 1
@@ -33,8 +32,9 @@ for inst in ids_labels:
 
     try:
         html_string = str(urlopen(url).read())
-        tp.feed(html_string)
-        dataset.append((tp.title, inst[1]))
+        data = re.findall(r'<title>.*?<\/title>', html_string)[0]
+        data = re.findall(r'&quot;.*?&quot;', data)[0].replace('&quot;', '')
+        dataset.append((data, inst[1]))
     except Exception:
         print(tweet_id)
         continue
