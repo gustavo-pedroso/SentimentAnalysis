@@ -3,11 +3,10 @@ from sklearn import svm
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
-import numpy
 from sklearn.metrics import confusion_matrix
 import scipy
-from sklearn.metrics import precision_recall_fscore_support
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Classifier:
 
@@ -59,8 +58,8 @@ class Classifier:
         train_vectors = self.vectorizer.fit_transform(train_data)
 
         if searchType == "grid":
-            cs = [0.9, 1, 1.1]
-            gammas = [0.0, 1, 1.1]
+            cs = [2, 2.5, 3]
+            gammas = [1]
             param_grid = {'C': cs, 'gamma': gammas}
             grid_search = GridSearchCV(svm.SVC(kernel='rbf'), param_grid, cv=nfolds, scoring="recall_macro")
         elif searchType == "random":
@@ -72,5 +71,13 @@ class Classifier:
         grid_search.fit(train_vectors, train_labels)
         grid_search.best_params_
         return grid_search.best_params_
+
+    def f_importances(self):
+        names = self.vectorizer.get_feature_names()
+        imp = self.classifier.coef_
+        imp, names = zip(*sorted(zip(imp, names)))
+        plt.barh(range(len(names)), imp, align='center')
+        plt.yticks(range(len(names)), names)
+        plt.show()
 
 

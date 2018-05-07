@@ -99,5 +99,4 @@ class Preprocessor:
         temp = ' '.join(sentence)
         temp = ' '.join(temp.split())
 
-        print(temp)
         return temp

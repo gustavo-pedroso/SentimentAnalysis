@@ -2,6 +2,7 @@ from scipy import stats
 import os
 import numpy as np
 import src.conf as conf
+from decimal import Decimal
 
 samples_avg = set()
 
@@ -9,7 +10,7 @@ results_path = conf.project_path + '/results/'
 
 for file1 in os.listdir(results_path):
     for file2 in os.listdir(results_path):
-        if file1 != file2:  # and file1 == 'tfidf-svm_rbf.txt':
+        if file1 != file2 and file1 == 'tfidf-svm_rbf.txt':
             f1 = open(results_path + file1)
             f2 = open(results_path + file2)
 
@@ -36,4 +37,4 @@ for file1 in os.listdir(results_path):
             print(file1.replace('.txt', ''), file2.replace('.txt', ''), d.pvalue)
 
 for s in sorted(samples_avg, key=lambda x: x[1], reverse=True):
-    print(s)
+    print(s[0], round(s[1], 5), round(s[2], 5))

@@ -10,8 +10,8 @@ from src.preprocessor import Preprocessor
 from random import sample
 from src.classifier import Classifier
 import src.conf as conf
-import numpy
-from pymongo import MongoClient
+import numpy as np
+
 
 preprocess = False
 if preprocess:
@@ -32,59 +32,56 @@ dataset = [x for x in dataset if len(x[0].split()) > 0]
 
 dataset = list(set(dataset))
 
-print(len(dataset))
+classifiers = [(SVC(kernel='rbf', C=2.9, gamma=1), 'svm_rbf'),
+               (SVC(kernel='linear'), 'svm_linear')]
+               # (KNeighborsClassifier(), 'knn'),
+               # (MultinomialNB(), 'naive_bayes'),
+               # (Perceptron(), 'perceptron')]
 
-classifiers = [(SVC(kernel='rbf', C=1.1, gamma=1), 'svm_rbf'),
-               (SVC(kernel='linear'), 'svm_linear'),
-               (KNeighborsClassifier(), 'knn'),
-               (MultinomialNB(), 'naive_bayes'),
-               (Perceptron(), 'perceptron')]
-
-vectorizers = [(TfidfVectorizer(min_df=0.0, max_df=1.0, sublinear_tf=True, use_idf=True), 'tfidf'),
-               (CountVectorizer(min_df=0.0, max_df=1.0), 'count'),
-               (HashingVectorizer(), 'hash')]
+vectorizers = [(TfidfVectorizer(min_df=0.0, max_df=1.0, sublinear_tf=True, use_idf=True), 'tfidf')]
+               # (CountVectorizer(min_df=0.0, max_df=1.0), 'count'),
+               # (HashingVectorizer(), 'hash')]
 
 
-# c = Classifier(classifier=classifiers[0][0], vectorizer=vectorizers[0][0])
-# x = list(map(lambda a: a[0], dataset))
-# y = list(map(lambda a: a[1], dataset))
-#
-# c.train(x_train=x, y_train=y)
-#
-# client = MongoClient('localhost', 27017)
-# db = client['tcc']
-# collection = db['tweets']
-#
-# for doc in collection.find({"classified": True}):
-#     print(doc['text'].replace('\n', ' '))
-#     print(c.predict(doc['text']))
-
-
-#
-#
-
-cl = Classifier(SVC(), vectorizers[0][0])
-
+c = Classifier(classifier=classifiers[1][0], vectorizer=vectorizers[0][0])
 x = list(map(lambda a: a[0], dataset))
 y = list(map(lambda a: a[1], dataset))
 
-c_avg = []
-gamma_avg = []
+c.train(x_train=x, y_train=y)
 
-for i in range(0, 5):
-    r = cl.svc_param_selection(x, y, 10, "grid")
-    print(r)
-    c_avg.append(r['C'])
-    gamma_avg.append(r['gamma'])
+from sklearn.pipeline import make_pipeline
+import eli5
 
-print(numpy.average(c_avg))
-print(numpy.average(gamma_avg))
+pipe = make_pipeline(vectorizers[0][0], classifiers[1][0])
+pipe.fit(x, y)
 
+
+file = open('C:/Users/Gustavo/Desktop/batata.html', 'wb')
+file.write(eli5.show_weights(classifiers[1][0], vec=vectorizers[0][0], top=1000).data.encode('utf8'))
+file.close()
+
+
+
+
+
+
+
+# cl = Classifier(SVC(), vectorizers[0][0])
+# c_avg = []
+# gamma_avg = []
+# for i in range(0, 10):
+#     dataset1 = sample(dataset, len(dataset))
+#     x = list(map(lambda a: a[0], dataset1))
+#     y = list(map(lambda a: a[1], dataset1))
+#     r = cl.svc_param_selection(x, y, 5, "grid")
+#     print(r)
+#     c_avg.append(r['C'])
+#     gamma_avg.append(r['gamma'])
 #
-#
-#
-#
-#
+# print(numpy.average(c_avg))
+# print(numpy.average(gamma_avg))
+
+
 # runs = 100
 # for clf in classifiers:
 #     for vec in vectorizers:
